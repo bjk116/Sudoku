@@ -4,6 +4,9 @@ class UnwriteableSquareError(Exception):
 class InvalidSquareValueError(Exception):
 	pass
 
+class InvalidMoveError(Exception):
+	pass
+
 class Square():
 	"""
 	Represents a singular square on the sudoku board.  Made so that the square can "know" its own group, and add properties like
@@ -68,6 +71,7 @@ class Board():
 	raw_board_data = None
 	board_data = None
 	won = False
+	training_wheels = False
 	def __init__(self, board_data=None):
 		if board_data is None:
 			board_data = test_board_1
@@ -145,8 +149,11 @@ class Board():
 		if value == 0 or value == '':
 			self.board_data[row][col].change_value(None)
 		else:
-#				Maybe make this an option thing that may or may not be turned on for newbies.
-#				self.is_valid_move(row, col, value)
+			#  Allow the user to decide if we check for valid moves or not
+			print("changing square")
+			if self.training_wheels:
+				print("checking if valid move")
+				self.is_valid_move(row, col, value)
 			self.board_data[row][col].change_value(value)
 			self.check_win()
 		# except ValueError as e:
@@ -202,7 +209,7 @@ class Board():
 		all_true = True
 		for group_num in range(1,10):
 			# turns a 2d list into a set
-			group_values = set.union(*map(set,self.get_group(group_num)))
+			group_values = self.get_group_value_set(group_num)
 			equals = correct_answer.issubset(group_values) and group_values.issubset(correct_answer)
 			if not equals:
 				all_true = False
@@ -210,7 +217,7 @@ class Board():
 				break
 		return all_true
 
-	def get_group(self, group_num):
+	def get_group_values(self, group_num):
 		"""
 		Gets all values for a group.  Group 1 being the block of 9 numbers in the top left,
 		group 2 being the 9 numbers in the top middle, 3 top 9 numbers top right, and so on.
@@ -244,3 +251,34 @@ class Board():
 			last_col = 9
 
 		return [[x.value for x in row[first_col:last_col]] for row in self.board_data[first_row:last_row]]
+	
+	def get_group_value_set(self, group_num):
+		# This gets a 2-D list that we then map the set function onto each row, and then finally set.union these three new unions together
+		return set.union(*map(set,self.get_group_values(group_num)))
+
+	def is_valid_move(self, row, col, value):
+		"""
+		Checks all three vectors to see if a move is possible.
+		"""
+		row_legal = self.check_if_valid_row_value(row, col, value)
+		col_legal = self.check_if_valid_col_value(row, col, value)
+		group_legal = self.check_if_valid_group_value(row, col, value)
+		if row_legal and col_legal and group_legal:
+			return
+		else:
+			error_message_mapping = [(row_legal, f"{value} exists in this row."), (col_legal, f"{value} exists in this column."), (group_legal, f"{value} exists in this group.")]
+			error_message = ' '.join([message for (err, message) in error_message_mapping if err])
+			raise InvalidMoveError(error_message)
+
+	def check_if_valid_row_value(self, row, col, value):
+		row_values = set([x.value for x in self.board_data[row]])
+		return value in row_values
+	
+	def check_if_valid_col_value(self, row, col, value):
+		col_values =  set([row[col].value for row in self.board_data])
+		return value in col_values
+
+	def check_if_valid_group_value(self, row, col, value):
+		group_num = self.board_data[row][col].group
+		group_values = self.get_group_value_set(group_num)
+		return value in group_values

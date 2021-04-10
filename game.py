@@ -1,7 +1,7 @@
 # Program to Show how to create a switch
 # import kivy module	
 import kivy
-	
+from kivy.properties import ObjectProperty
 # base Class of your App inherits from the App class.	
 # app:always refers to the instance of your application
 from kivy.app import App
@@ -18,28 +18,34 @@ from kivy.lang import Builder
 
 # The screen manager is a widget
 # dedicated to managing multiple screens for your application.
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+from kivy.uix.button import Button
 from kivy.uix.screenmanager import (ScreenManager, Screen, NoTransition,
 SlideTransition, CardTransition, SwapTransition,
 FadeTransition, WipeTransition, FallOutTransition, RiseInTransition)
-from components.board import Board, UnwriteableSquareError, InvalidSquareValueError
+from components.board import Board, UnwriteableSquareError, InvalidSquareValueError, InvalidMoveError
 
 # You can create your kv code in the Python file
 Builder.load_file('gui/gui.kv')
 
+# Global variables
+options = {
+	"training_wheels":True
+ }
+
+game = Board(board_data=None)
+
 # Create a class for all screens in which you can include
 # helpful methods specific to that screen
 class SplashScreen(Screen):
-	def sayhi(self):
-		Logger.critical("Hi!")
-
-	def saybye(self):
-		Logger.critical("Bye!")
+	pass
 
 class NewGame(Screen):
 	def __init__(self, **kwargs):
 		super(Screen,self).__init__(**kwargs)
-		self.new_board = Board(board_data=None)
 		self.initialize_board()
+		
 
 	def initialize_board(self):
 		"""
@@ -48,16 +54,16 @@ class NewGame(Screen):
 		for screen in self.walk():
 			for text_input in screen.walk():
 				if isinstance(text_input, kivy.uix.textinput.TextInput):
-					value = self.new_board.get_value(text_input.board_row, text_input.board_col)
+					value = game.get_value(text_input.board_row, text_input.board_col)
 					text_input.text = str(value)
 
 	def set_value(self, instance):
 		try:
 			value = int(instance.text)
-			self.new_board.change_square(instance.board_row, instance.board_col, value)
+			game.change_square(instance.board_row, instance.board_col, value)
 		except UnwriteableSquareError as e:
 			# Handles when a person tries to over write a hardcoded value, write back old value
-			old_value = self.new_board.get_value(instance.board_row, instance.board_col)
+			old_value = game.get_value(instance.board_row, instance.board_col)
 			instance.text = str(old_value)
 		except InvalidSquareValueError as e:
 			# Handles values < 1 or > 9 
@@ -66,6 +72,12 @@ class NewGame(Screen):
 		except ValueError as e:
 			# Handles non-integer inputs - clear square/don't allow
 			instance.text = ''
+		except InvalidMoveError as e:
+			content = Button(text=str(e))
+			popup = Popup(title='Invalid Move', content=content, auto_dismiss=False, size=(10, 10))
+			content.bind(on_press=popup.dismiss)
+			popup.open()
+			instance.text = ''
 		finally:
 			self.check_win()
 	
@@ -73,11 +85,23 @@ class NewGame(Screen):
 		"""
 		After every move, good or bad, just check the win 
 		"""
-		if self.new_board.won:
+		if game.won:
 			Logger.info("You won!")
 
 class Options(Screen):
-	pass
+	def __init__(self, **kwargs):
+		super(Screen,self).__init__(**kwargs)
+		game.training_wheels = options['training_wheels']
+
+	def training_wheels_initial_value(self):
+		return options['training_wheels']
+
+	def set_training_wheels(self, instance, value):
+		"""
+		Turns on the training wheels.  Won't allow invalid moves.
+		"""
+		options['training_wheels'] = value
+		game.training_wheels = value
 
 class ScreenFour(Screen):
 	pass

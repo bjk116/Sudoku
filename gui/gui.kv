@@ -11,12 +11,34 @@
             text: "Options"
             background_color: 1, 1, 0, 1
             on_press:
-                root.sayhi()
+                app.root.current = "Options"
         Button:
             text: "Exit"
             background_color: 0, 0, 1, 1
             on_press:
                 app.stop()
+
+<Options>
+    title: 'Options'
+    id: options_window
+
+    GridLayout:
+        id: options_grid_layout
+        cols: 2
+        rows: 5
+        CheckBox:
+            id: training_wheels
+            active: root.training_wheels_initial_value()
+            on_active: root.set_training_wheels(self, self.active)
+        Label:
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            text: 'Training Wheels'
+        Button:
+            text: "Back"
+            on_press:
+                app.root.current = "Splash Screen"
 
 <NewGame>
     title: 'New Game!'
@@ -25,7 +47,7 @@
     GridLayout:
         id: grid_layout
         cols: 9
-        rows: 9
+        rows: 10
         TextInput:
             id: (0,0)
             on_text: root.set_value(self)
@@ -34,6 +56,7 @@
             font_size: 40
             border: (4,3,2,1)
             padding: [0, (self.height-self.line_height)/2]
+            halign: 'center'
         TextInput:
             id: (0,1)
             on_text: root.set_value(self)
@@ -674,3 +697,11 @@
             font_size: 40
             border: (4,3,2,1)
             padding: [0, (self.height-self.line_height)/2]
+        Button:
+            id: back_btn
+            text: "Back to menu"
+            on_press:
+                app.root.current = "Splash Screen"
+        Label:
+            id: messages
+            text: 'Welcome tothe mofotucking game bitch'
