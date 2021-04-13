@@ -271,14 +271,17 @@ class Board():
 			raise InvalidMoveError(error_message)
 
 	def check_if_valid_row_value(self, row, col, value):
+		"""Checks to see if new input value already exists in row"""
 		row_values = set([x.value for x in self.board_data[row]])
 		return value in row_values
 	
 	def check_if_valid_col_value(self, row, col, value):
+		"""Checks to see if new input value already exists in cl"""
 		col_values =  set([row[col].value for row in self.board_data])
 		return value in col_values
 
 	def check_if_valid_group_value(self, row, col, value):
+		"""Checks to see if new input value already exists in group"""
 		group_num = self.board_data[row][col].group
 		group_values = self.get_group_value_set(group_num)
 		return value in group_values
