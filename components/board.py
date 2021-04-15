@@ -188,7 +188,6 @@ class Board():
 			equals = correct_answer.issubset(row_values) and row_values.issubset(correct_answer)
 			if not equals:
 				all_true = False
-				print(f"Row is not right for row number {row_ind}")
 				break
 		return all_true
 	
@@ -200,7 +199,6 @@ class Board():
 			equals = correct_answer.issubset(col_values) and col_values.issubset(correct_answer)
 			if not equals:
 				all_true = False
-				print(f"Col is not right for col number {col_ind}")
 				break
 		return all_true
 
@@ -213,7 +211,6 @@ class Board():
 			equals = correct_answer.issubset(group_values) and group_values.issubset(correct_answer)
 			if not equals:
 				all_true = False
-				print(f"Group is not right for group num {group_num}")
 				break
 		return all_true
 
