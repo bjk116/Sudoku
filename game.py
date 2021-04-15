@@ -45,7 +45,6 @@ class NewGame(Screen):
 	def __init__(self, **kwargs):
 		super(Screen,self).__init__(**kwargs)
 		self.initialize_board()
-		
 
 	def initialize_board(self):
 		"""
@@ -58,6 +57,11 @@ class NewGame(Screen):
 					text_input.text = str(value)
 
 	def set_value(self, instance):
+		"""
+		Tries to set the value of the sudoku square to the inputted user value.
+		Args:
+			instance: the TextInput component that had its text changed
+		"""
 		try:
 			value = int(instance.text)
 			game.change_square(instance.board_row, instance.board_col, value)
@@ -67,8 +71,8 @@ class NewGame(Screen):
 			instance.text = str(old_value)
 		except InvalidSquareValueError as e:
 			# Handles values < 1 or > 9 
-			# DECIDE - should this write a blank or the old value back
-			Logger.error(f"InvalidSquareValueError: {e}")
+			old_value = game.get_value(instance.board_row, instance.board_col)
+			instance.text = str(old_value)
 		except ValueError as e:
 			# Handles non-integer inputs - clear square/don't allow
 			instance.text = ''
