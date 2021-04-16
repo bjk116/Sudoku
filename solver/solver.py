@@ -17,6 +17,7 @@ class Solver():
 	"""
 	possible_answers = None
 	instructions_performed = []
+	answers_written = 0
 
 	def __init__(self, board):
 		self.board = board
@@ -50,6 +51,13 @@ class Solver():
 #					sets_to_subtract = [row_values, col_values, group_values]
 #					self.possible_answers[row_num][col_num] = full_values.difference(*sets_to_subtract)
 		self.print_possible_answers()
+	
+	def write_to_board(self, row, col, value):
+		"""Writes a answer provided by the Solver to the board.  If this throws an error, thats fine, we let that bubble up
+		to the custom solver class"""
+		self.board.change_square(row, col, value)
+		instructions_performed = [(self.write_to_board, (row, col,value), {})]
+		self.answers_written += 1
 
 	def print_possible_answers(self):
 		"""
@@ -124,6 +132,43 @@ class Solver():
 		self.possible_answers[row][col]=new_set
 		self.instructions_performed.append((self.change_possible_answer,(row, col, new_set),{}))
 
+class BruteForceSolver(Solver):
+	"""
+	Niave brute force solver.  Goes square byt square, gets the set subtraction of {1,2,3,4,5,6,7,8,9} from row, col and group sets.
+	If a square becomes a set of one we know it is the answer and write it.  We do this, at least in this iteration, in a type-writer
+	fashion - left to write ftopt o bottom.
+	"""
+	def __init__(self, board):
+		super().__init__(board)
+		self.do_next_step()
+
+	def work_on_square(self, row, col):
+		row_set = self.get_row_set(row)
+		col_set = self.get_col_set(col)
+		group_set = self.get_group_set(row, col)
+		sets_to_subtract = [row_set, col_set, group_set]
+#		self.possible_answers[row_num][col_num] = full_values.difference(*sets_to_subtract)
+		curr_answer = self.possible_answers[row][col]
+		if len(curr_answer)>1:
+			new_answer = curr_answer.difference(*sets_to_subtract)
+#			print(f"({row},{col})curr answer is {curr_answer} and new answer is {new_answer}")
+			
+			if len(new_answer) == 1:
+				self.possible_answers[row][col]=new_answer.copy()
+				self.write_to_board(row, col, new_answer.pop())					
+
+	def start_from_beginning(self):
+		for row_num, row in enumerate(self.possible_answers):
+			for col_num, possible_answers in enumerate(row):
+				self.work_on_square(row_num, col_num)
+		print(f"{self.answers_written} answers written this round")
+		self.board.print_board()
+		if not self.board.won:
+			self.do_next_step()
+
+	def if_empty(self):
+		self.instruction_stack.put((self.start_from_beginning,(), {}))
+
 class BrianMethod(Solver):
 	"""
 	My personal method of solving sudoku puzzles in books. Just to get started.
@@ -151,4 +196,4 @@ class BrianMethod(Solver):
 
 if __name__ == "__main__":
 	new_game = Board()
-	my_solver = BrianMethod(new_game)
+	my_solver = BruteForceSolver(new_game)
