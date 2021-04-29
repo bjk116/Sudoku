@@ -1,3 +1,6 @@
+# plyer is a one stop shop that udner the hood knows how to call native api's for a number of different os/systems
+import plyer
+
 # Program to Show how to create a switch
 # import kivy module	
 import kivy
@@ -45,6 +48,9 @@ class NewGame(Screen):
 	def __init__(self, **kwargs):
 		super(Screen,self).__init__(**kwargs)
 		self.initialize_board()
+	
+	def on_enter(self):
+		plyer.notification.notify(title='New Game!!', message='Play new game!', app_name='Sudoku Solver', app_icon='', timeout=10, ticker='Incominggg', toast=False)
 
 	def initialize_board(self):
 		"""
